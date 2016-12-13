@@ -5,10 +5,10 @@ import urlparse
 
 import requests
 
-base_url = "https://raw.github.com/rahulunair/attack_payloads/data"
+base_url = "https://raw.githubusercontent.com/rahulunair/attack_payloads/"
 attack_strings = {
     "null": b"\x00",
-    "crafted": b"\x01\x23\x42" + "/etc/passwd" + b"\x00" * 2,
+    "crafted": b"\x01\x23\x42" + "/etc/passwd" + b"\x00\x45\x43\x00" * 2**2,
     "tiny": b"\x00" * 2,
     "bill_xml": "",
     "depth_json": ""
@@ -23,7 +23,7 @@ def giant_null_file(as_file=False, filename=None, size=0):
         with open(filename, "wb") as gf:
             gf.write(bytearray(attack_strings["null"]) * (2**size))
         return os.path.abspath("null.bin")
-    return attack_strings["null"] * (2**size)
+    print(attack_strings["null"] * (2**size))
 
 
 def tiny_null_files(number=0):
@@ -34,7 +34,7 @@ def tiny_null_files(number=0):
         with open(str(num) + "_file.bin", "wb") as fh:
             fh.write(attack_strings["tiny"])
         file_list.append(os.path.abspath(fh.name))
-    return file_list
+    print(file_list)
 
 
 def crafted_binary(as_file=False):
@@ -42,14 +42,14 @@ def crafted_binary(as_file=False):
         with open("crafted.bin", "wb") as fh:
             fh.write(attack_strings["crafted"])
         return os.path.abspath("crafted.bin")
-    return attack_strings["crafted"]
+    print(attack_strings["crafted"])
 
 
 def billion_laughs():
     """A billion laughs xml"""
     attack_strings["bill_xml"] = requests.get(urlparse.urljoin(
-        base_url, "bill_laughs.xml"))
-    return attack_strings["bill_xml"]
+        base_url, "master/data/bill_laughs.xml")).text
+    print(attack_strings["bill_xml"])
 
 
 def crazy_json(as_file=False):
@@ -59,7 +59,7 @@ def crazy_json(as_file=False):
         with open("depth_limit.json", "wb") as fh:
             fh.write(attack_strings["depth_json"])
             return os.path.abspath(fh.name)
-    return attack_strings["depth_json"]
+    print(attack_strings["depth_json"])
 
 
 def main():
