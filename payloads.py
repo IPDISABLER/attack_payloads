@@ -5,13 +5,13 @@ import urlparse
 
 import requests
 
-base_url = "https://raw.github.com/rahulunair/attack_payloads/"
+base_url = "https://raw.github.com/rahulunair/attack_payloads/data"
 attack_strings = {
     "null": b"\x00",
-    "crafted": "/etc/passwd" + b"\x00" * (2**2),
+    "crafted": b"\x01\x23\x42" + "/etc/passwd" + b"\x00" * 2,
     "tiny": b"\x00" * 2,
-    "bill_xml": requests.get(urlparse.urljoin(base_url, "bill_laughs.xml")),
-    "depth_json": '{"id":' * 1001 + '42' + '}' * 1001
+    "bill_xml": "",
+    "depth_json": ""
 }
 
 
@@ -20,7 +20,7 @@ def giant_null_file(as_file=False, filename=None, size=0):
     filename = filename or "giant.bin"
     size = size or 24
     if as_file:
-        with open(filename) as gf:
+        with open(filename, "wb") as gf:
             gf.write(bytearray(attack_strings["null"]) * (2**size))
         return os.path.abspath("null.bin")
     return attack_strings["null"] * (2**size)
@@ -29,9 +29,9 @@ def giant_null_file(as_file=False, filename=None, size=0):
 def tiny_null_files(number=0):
     """Create number of tiny files"""
     number = number or 10
-    for num in number:
+    for num in range(number):
         file_list = []
-        with open(str(num) + "_file.bin") as fh:
+        with open(str(num) + "_file.bin", "wb") as fh:
             fh.write(attack_strings["tiny"])
         file_list.append(os.path.abspath(fh.name))
     return file_list
@@ -39,7 +39,7 @@ def tiny_null_files(number=0):
 
 def crafted_binary(as_file=False):
     if as_file:
-        with open("crafted.bin") as fh:
+        with open("crafted.bin", "wb") as fh:
             fh.write(attack_strings["crafted"])
         return os.path.abspath("crafted.bin")
     return attack_strings["crafted"]
@@ -47,13 +47,16 @@ def crafted_binary(as_file=False):
 
 def billion_laughs():
     """A billion laughs xml"""
+    attack_strings["bill_xml"] = requests.get(urlparse.urljoin(
+        base_url, "bill_laughs.xml"))
     return attack_strings["bill_xml"]
 
 
 def crazy_json(as_file=False):
     """A deep nested json file generator"""
+    attack_strings["depth_json"] = '{"id":' * 1001 + '42' + '}' * 1001
     if as_file:
-        with open("depth_limit.json") as fh:
+        with open("depth_limit.json", "wb") as fh:
             fh.write(attack_strings["depth_json"])
             return os.path.abspath(fh.name)
     return attack_strings["depth_json"]
@@ -77,11 +80,11 @@ def main():
     group.add_argument("--crazy_json",
                        help="A deep nested json",
                        action="store_true")
-    group.add_option("--bill_laughs",
-                     help="Billion laughs",
-                     action="store_true")
+    group.add_argument("--bill_laughs",
+                       help="Billion laughs",
+                       action="store_true")
     group.add_argument("--crafted",
-                       help="A binay file with /etc/passwd",
+                       help="A binary file with /etc/passwd",
                        action="store_true")
     group.add_argument("--tiny_files",
                        help="A set of tiny files",
